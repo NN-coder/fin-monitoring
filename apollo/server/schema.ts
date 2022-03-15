@@ -1,9 +1,7 @@
 import 'reflect-metadata';
 import { buildSchemaSync } from 'type-graphql';
-import { CommentsResolver } from './resolvers/comments/resolver';
-import { PostsResolver } from './resolvers/posts/resolver';
-import { UsersResolver } from './resolvers/users/resolver';
+import * as resolvers from './resolvers';
 
 export const schema = buildSchemaSync({
-  resolvers: [CommentsResolver, PostsResolver, UsersResolver],
+  resolvers: Object.values(resolvers) as any,
 });
