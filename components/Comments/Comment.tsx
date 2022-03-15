@@ -28,7 +28,7 @@ export const Comment: FC<Props> = ({ id, date, text, user }) => {
         name={user.name ?? undefined}
         date={new Date(date)}
       />
-      <p className="my-2">{text}</p>
+      <p className="my-2">{text.trim()}</p>
       {session?.user?.role === UserRole.ADMIN && (
         <button
           type="button"

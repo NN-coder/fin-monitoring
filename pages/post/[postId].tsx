@@ -80,7 +80,7 @@ const PostPage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (prop
           className="mb-4 text-2xl font-medium text-center xl:text-4xl"
           style={{ wordBreak: 'break-word' }}
         >
-          {title}
+          {title.trim()}
         </h2>
         <UserHeader
           image={user.image ?? undefined}
@@ -91,7 +91,7 @@ const PostPage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (prop
       </header>
       <div className="max-w-lg mx-auto">
         <p className="whitespace-pre-line" style={{ wordBreak: 'break-word' }}>
-          {text}
+          {text.trim()}
         </p>
         {session?.user?.role === UserRole.ADMIN && (
           <div aria-hidden className="contents md:flex">
