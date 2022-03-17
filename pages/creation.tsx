@@ -5,9 +5,7 @@ import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { AuthorizedError } from '../errors/AuthorizedError';
-import { UnsupportedFileTypeError } from '../errors/UnsupportedFileTypeError';
 import { CREATE_POST } from '../graphql/mutations/CREATE_POST';
-import { supportedImageTypes } from '../types/SupportedImageType';
 import { getImageData } from '../utils/getImageData';
 import { toastPromise } from '../utils/toastPromise';
 
@@ -30,7 +28,7 @@ const CreationPage: NextPage = () => {
   const selectImage = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = supportedImageTypes.join(',');
+    input.accept = 'image/avif,image/jpeg,image/png,image/tiff,image/webp';
 
     input.addEventListener('change', ({ target }) => {
       const file = (target as HTMLInputElement).files?.item(0);
@@ -56,9 +54,6 @@ const CreationPage: NextPage = () => {
             return 'Пост отправлен на проверку модераторам';
           },
           fail(error) {
-            if (error instanceof Error && error.message === UnsupportedFileTypeError.message)
-              return 'Неподдерживаемый тип изображения';
-
             if (error instanceof ApolloError) {
               if (error.message === AuthorizedError.message)
                 return 'Для создания поста необходимо авторизоваться';
