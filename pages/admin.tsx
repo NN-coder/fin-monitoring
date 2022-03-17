@@ -1,21 +1,21 @@
-import { useQuery } from '@apollo/client';
 import { UserRole } from '@prisma/client';
-import { GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
+import { GetServerSideProps, InferGetServerSidePropsType, NextPage } from 'next';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { Comment } from '../components/Comments/Comment';
-import { COMMENTS, Result as CommentsResult } from '../graphql/queries/COMMENTS';
-import { POST_DRAFTS, Result as PostDraftsResult } from '../graphql/queries/POST_DRAFTS';
 import { prisma } from '../prisma';
-import { ServerComment } from '../types/Comment';
-import { ServerPostPreview } from '../types/Post';
+import { ClientComment, ServerComment } from '../types/Comment';
+import { ClientPostPreview, ServerPostPreview } from '../types/Post';
 import { getFormattedDate } from '../utils/getFormattedDate';
 import { jsonify } from '../utils/jsonify';
+import { setCacheControlHeader } from '../utils/setCacheControlHeader';
 
-export const getStaticProps: GetStaticProps<{
-  postDraftsData: PostDraftsResult;
-  commentsData: CommentsResult;
-}> = async () => {
+export const getServerSideProps: GetServerSideProps<{
+  posts: ClientPostPreview[];
+  comments: ClientComment[];
+}> = async ({ res }) => {
+  setCacheControlHeader(res);
+
   const prismaPosts: ServerPostPreview[] = await prisma.post.findMany({
     where: { published: false },
     select: { id: true, date: true, image: true, title: true, user: true },
@@ -27,19 +27,16 @@ export const getStaticProps: GetStaticProps<{
     orderBy: { date: 'desc' },
   });
 
-  const postDrafts = jsonify(prismaPosts);
+  const posts = jsonify(prismaPosts);
   const comments = jsonify(prismaComments);
 
-  return { props: { postDraftsData: { postDrafts }, commentsData: { comments } } };
+  return { props: { posts, comments } };
 };
 
-const AdminPage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
-  postDraftsData,
-  commentsData,
+const AdminPage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = ({
+  posts,
+  comments,
 }) => {
-  const { data: { postDrafts } = postDraftsData } = useQuery(POST_DRAFTS);
-  const { data: { comments } = commentsData } = useQuery(COMMENTS);
-
   const { data: session } = useSession();
   if (session?.user?.role !== UserRole.ADMIN) return null;
 
@@ -47,7 +44,7 @@ const AdminPage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = ({
     <div className="max-w-3xl mx-auto">
       <h2 className="mb-6 text-2xl font-medium text-center xl:text-4xl">Неопубликованные посты</h2>
       <div className="grid gap-4 md:grid-cols-2">
-        {postDrafts.map(({ id, title, date, image }) => (
+        {posts.map(({ id, title, date, image }) => (
           <Link key={id} href={`/post/${id}`}>
             <a className="w-full flex justify-between items-center">
               <article className="contents">

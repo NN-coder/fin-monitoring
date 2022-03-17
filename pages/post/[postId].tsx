@@ -1,36 +1,27 @@
-import { useMutation, useQuery } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { UserRole } from '@prisma/client';
-import { GetStaticPaths, GetStaticProps, InferGetStaticPropsType, NextPage } from 'next';
+import { GetServerSideProps, InferGetServerSidePropsType, NextPage } from 'next';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import clsx from 'clsx';
 import { Comments } from '../../components/Comments';
-import { POST, Result as PostResult } from '../../graphql/queries/POST';
 import { PUBLISH_POST } from '../../graphql/mutations/PUBLISH_POST';
 import { DELETE_POST } from '../../graphql/mutations/DELETE_POST';
 import { UserHeader } from '../../components/UserHeader';
 import { toastPromise } from '../../utils/toastPromise';
 import { prisma } from '../../prisma';
-import { InferGetStaticPathsType } from '../../types/InferGetStaticPathsType';
-import { ServerPost } from '../../types/Post';
+import { ClientPost, ServerPost } from '../../types/Post';
 import { jsonify } from '../../utils/jsonify';
+import { setCacheControlHeader } from '../../utils/setCacheControlHeader';
 
-export const getStaticPaths: GetStaticPaths<{ postId: string }> = async () => {
-  const postIds = await prisma.post.findMany({ select: { id: true } });
+export const getServerSideProps: GetServerSideProps<
+  { post: ClientPost },
+  { postId: string }
+> = async ({ res, params }) => {
+  setCacheControlHeader(res);
+  if (!params || typeof params.postId !== 'string') return { notFound: true };
 
-  return {
-    paths: postIds.map(({ id }) => ({ params: { postId: id } })),
-    fallback: true,
-  };
-};
-
-export const getStaticProps: GetStaticProps<
-  PostResult,
-  InferGetStaticPathsType<typeof getStaticPaths>
-> = async ({ params }) => {
   try {
-    if (!params) return { notFound: true };
-
     const prismaPost: ServerPost = await prisma.post.findUnique({
       where: { id: params.postId },
       include: { comments: { orderBy: { date: 'desc' }, include: { user: true } }, user: true },
@@ -43,35 +34,31 @@ export const getStaticProps: GetStaticProps<
   }
 };
 
-const PostPage: NextPage<InferGetStaticPropsType<typeof getStaticProps>> = (props) => {
+const PostPage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>> = ({
+  post: { id, category, title, date, image, text, published, user, comments },
+}) => {
   const router = useRouter();
-  const postId = router.query.postId as string;
-
   const [publishPostMutation] = useMutation(PUBLISH_POST);
   const [deletePostMutation] = useMutation(DELETE_POST);
 
   const publishPost = () =>
-    toastPromise(publishPostMutation({ variables: { id: postId } }), {
+    toastPromise(publishPostMutation({ variables: { id } }), {
       pending: 'Апубликовывоем...',
       success: 'Невероятно, оно сработало!',
       fail: 'Странно, должно работать...',
     });
 
   const deletePost = () =>
-    toastPromise(deletePostMutation({ variables: { id: postId } }), {
+    toastPromise(deletePostMutation({ variables: { id } }), {
       pending: 'Удоляем...',
       success() {
-        router.back();
+        router.push(`/categories/${category}`);
         return 'Невероятно, оно сработало!';
       },
       fail: 'Странно, должно работать...',
     });
 
   const { data: session } = useSession();
-  const { data = props } = useQuery(POST, { variables: { id: postId } });
-
-  if (router.isFallback) return null;
-  const { title, date, image, text, published, user, comments } = data.post;
 
   return (
     <article className="contents">
