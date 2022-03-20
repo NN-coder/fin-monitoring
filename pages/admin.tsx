@@ -59,7 +59,11 @@ const AdminPage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>
                     {getFormattedDate(new Date(date))}
                   </time>
                 </header>
-                <img src={image} alt="" className="w-24 h-24 ml-4 rounded-lg" />
+                <img
+                  src={image || '/placeholder.png'}
+                  alt=""
+                  className="w-24 h-24 ml-4 rounded-lg"
+                />
               </article>
             </a>
           </Link>

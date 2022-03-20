@@ -74,7 +74,11 @@ const PostPage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>>
           name={user.name ?? undefined}
           date={new Date(date)}
         />
-        <img src={image} alt="" className="my-4 w-full h-60 rounded-lg md:h-[22rem]" />
+        <img
+          src={image || '/placeholder.png'}
+          alt=""
+          className="my-4 w-full h-60 rounded-lg md:h-[22rem]"
+        />
       </header>
       <div className="max-w-lg mx-auto">
         <p className="whitespace-pre-line" style={{ wordBreak: 'break-word' }}>

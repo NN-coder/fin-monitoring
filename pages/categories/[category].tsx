@@ -61,7 +61,11 @@ const CategoryPage: NextPage<InferGetServerSidePropsType<typeof getServerSidePro
                     date={new Date(date)}
                   />
                 </header>
-                <img src={image} alt="" className="w-full h-60 mt-4 rounded-lg md:h-[22rem]" />
+                <img
+                  src={image || '/placeholder.jpg'}
+                  alt=""
+                  className="w-full h-60 mt-4 rounded-lg md:h-[22rem]"
+                />
               </article>
             </a>
           ) : (
@@ -78,7 +82,11 @@ const CategoryPage: NextPage<InferGetServerSidePropsType<typeof getServerSidePro
                     {getFormattedDate(new Date(date))}
                   </time>
                 </header>
-                <img src={image} alt="" className="w-24 h-24 ml-4 rounded-lg" />
+                <img
+                  src={image || '/placeholder.jpg'}
+                  alt=""
+                  className="w-24 h-24 ml-4 rounded-lg"
+                />
               </article>
             </a>
           )}

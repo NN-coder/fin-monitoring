@@ -7,14 +7,14 @@ export interface Result {
 }
 
 export interface Variables {
-  data: CreatePost;
+  input: CreatePost;
 }
 
 export const CREATE_POST: TypedDocumentNode<Result, Variables> = gql`
   ${FULL_POST_FIELDS}
 
-  mutation CreatePost($data: CreatePostInput!) {
-    post: createPost(data: $data) {
+  mutation CreatePost($input: CreatePostInput!) {
+    post: createPost(input: $input) {
       ...FULL_POST_FIELDS
     }
   }

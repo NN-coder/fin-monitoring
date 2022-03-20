@@ -19,7 +19,7 @@ export const AddComment: FC = () => {
 
     if (text && !loading)
       toastPromise(
-        createCommentMutation({ variables: { postId: postId as string, data: { text } } }),
+        createCommentMutation({ variables: { postId: postId as string, input: { text } } }),
         {
           pending: 'Подождите...',
           success() {

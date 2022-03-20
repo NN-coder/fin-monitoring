@@ -8,14 +8,14 @@ export interface Result {
 
 export interface Variables {
   id: string;
-  data: UpdatePost;
+  input: UpdatePost;
 }
 
 export const UPDATE_POST: TypedDocumentNode<Result, Variables> = gql`
   ${FULL_POST_FIELDS}
 
-  mutation UpdatePost($id: ObjectId!, $data: UpdatePostInput!) {
-    post: updatePost(id: $id, data: $data) {
+  mutation UpdatePost($id: ObjectId!, $input: UpdatePostInput!) {
+    post: updatePost(id: $id, input: $input) {
       ...FULL_POST_FIELDS
     }
   }

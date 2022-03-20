@@ -13,7 +13,7 @@ export type ServerPostPreview = Pick<
 
 export type ClientPostPreview = Jsonify<ServerPostPreview>;
 
-export type CreatePost = Pick<ServerPost, 'category' | 'text' | 'title'> & { imageData: number[] };
+export type CreatePost = Pick<ServerPost, 'category' | 'text' | 'title'> & { imageData?: number[] };
 export type UpdatePost = Partial<
   Pick<ServerPost, 'category' | 'text' | 'title'> & { imageData: number[] }
 >;

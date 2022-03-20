@@ -18,12 +18,12 @@ export class CommentsResolver {
   async createComment(
     @Ctx() { session }: Context,
     @Arg('postId', () => ObjectIdScalar) postId: string,
-    @Arg('data') data: CreateCommentInput
+    @Arg('input') input: CreateCommentInput
   ): Promise<Comment> {
     if (!session?.user) throw new AuthorizedError();
 
     return await prisma.comment.create({
-      data: { userId: session.user.id, postId, ...data },
+      data: { userId: session.user.id, postId, ...input },
       include: { user: true },
     });
   }
@@ -32,13 +32,13 @@ export class CommentsResolver {
   async updateComment(
     @Ctx() { session }: Context,
     @Arg('id', () => ObjectIdScalar) id: string,
-    @Arg('data') data: UpdateCommentInput
+    @Arg('input') input: UpdateCommentInput
   ): Promise<Comment> {
     if (!session?.user) throw new AuthorizedError();
     const comment = await prisma.comment.findUnique({ where: { id } });
 
     if (session.user.role === UserRole.ADMIN || comment.userId === session.user.id)
-      return await prisma.comment.update({ where: { id }, data, include: { user: true } });
+      return await prisma.comment.update({ where: { id }, data: input, include: { user: true } });
 
     throw new PermissionError();
   }

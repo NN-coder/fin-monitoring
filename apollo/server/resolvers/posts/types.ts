@@ -11,7 +11,7 @@ registerEnumType(PostCategory, { name: 'PostCategory' });
 export class PostPreview implements ServerPostPreview {
   @Field(() => ObjectIdScalar) id: string;
   @Field() date: Date;
-  @Field() image: string;
+  @Field({ nullable: true }) image: string | null;
   @Field() title: string;
   @Field(() => User) user: User;
 }
@@ -21,7 +21,7 @@ export class Post implements ServerPost {
   @Field(() => ObjectIdScalar) id: string;
   @Field() title: string;
   @Field() text: string;
-  @Field() image: string;
+  @Field({ nullable: true }) image: string | null;
   @Field() date: Date;
   @Field(() => PostCategory) category: PostCategory;
   @Field() published: boolean;
@@ -35,7 +35,7 @@ export class CreatePostInput implements CreatePost {
   @Field(() => PostCategory) category: PostCategory;
   @Field() text: string;
   @Field() title: string;
-  @Field(() => [Int]) imageData: number[];
+  @Field(() => [Int], { nullable: true }) imageData?: number[];
 }
 
 @InputType()

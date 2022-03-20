@@ -88,7 +88,7 @@ model Post {
 
   title     String
   text      String
-  image     String
+  image     String?
   date      DateTime     @updatedAt
   category  PostCategory
   published Boolean      @default(false)

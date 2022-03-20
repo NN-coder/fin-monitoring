@@ -1,6 +1,7 @@
 import { PostCategory, UserRole } from '@prisma/client';
 import { UploadClient } from '@uploadcare/upload-client';
-import { Arg, Ctx, Int, Mutation, Query, Resolver } from 'type-graphql';
+import { Arg, Ctx, Mutation, Query, Resolver } from 'type-graphql';
+import { fileTypeFromBuffer } from 'file-type';
 import { serverEnv } from '../../../../env/serverEnv';
 import { AuthorizedError } from '../../../../errors/AuthorizedError';
 import { PermissionError } from '../../../../errors/PermissionError';
@@ -8,8 +9,21 @@ import { prisma } from '../../../../prisma';
 import { Context } from '../../types/Context';
 import { ObjectIdScalar } from '../../types/ObjectIdScalar';
 import { CreatePostInput, Post, PostPreview, UpdatePostInput } from './types';
+import { isSupportedImageType } from '../../../../types/supportedImageType';
+import { UnsupportedFileTypeError } from '../../../../errors/UnsupportedFileTypeError';
 
 const uploadClient = new UploadClient({ publicKey: serverEnv.uploadClientPublicKey });
+
+const uploadImage = async (imageData: number[]) => {
+  const imageBuffer = Buffer.from(imageData);
+  const fileTypeResult = await fileTypeFromBuffer(imageBuffer);
+
+  if (!fileTypeResult || !isSupportedImageType(fileTypeResult.mime))
+    throw new UnsupportedFileTypeError();
+
+  const { uuid } = await uploadClient.uploadFile(imageBuffer);
+  return `https://ucarecdn.com/${uuid}/`;
+};
 
 @Resolver()
 export class PostsResolver {
@@ -77,16 +91,15 @@ export class PostsResolver {
   @Mutation(() => Post)
   async createPost(
     @Ctx() { session }: Context,
-    @Arg('data') { imageData, ...data }: CreatePostInput
+    @Arg('input') { imageData, ...input }: CreatePostInput
   ) {
     if (!session?.user) throw new AuthorizedError();
-    const { uuid } = await uploadClient.uploadFile(Buffer.from(imageData));
 
     return await prisma.post.create({
       data: {
-        ...data,
+        ...input,
         userId: session.user.id,
-        image: `https://ucarecdn.com/${uuid}/`,
+        image: imageData ? await uploadImage(imageData) : null,
       },
       include: { comments: { orderBy: { date: 'desc' }, include: { user: true } }, user: true },
     });
@@ -96,7 +109,7 @@ export class PostsResolver {
   async updatePost(
     @Ctx() { session }: Context,
     @Arg('id', () => ObjectIdScalar) id: string,
-    @Arg('data') data: UpdatePostInput
+    @Arg('input') { imageData, ...input }: UpdatePostInput
   ): Promise<Post> {
     if (!session?.user) throw new AuthorizedError();
     const post = await prisma.post.findUnique({ where: { id } });
@@ -107,7 +120,7 @@ export class PostsResolver {
     )
       return await prisma.post.update({
         where: { id },
-        data,
+        data: { ...input, image: imageData ? await uploadImage(imageData) : post.image },
         include: { comments: { orderBy: { date: 'desc' }, include: { user: true } }, user: true },
       });
 

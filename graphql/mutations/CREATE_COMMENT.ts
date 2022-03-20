@@ -8,14 +8,14 @@ export interface Result {
 
 export interface Variables {
   postId: string;
-  data: CreateComment;
+  input: CreateComment;
 }
 
 export const CREATE_COMMENT: TypedDocumentNode<Result, Variables> = gql`
   ${FULL_COMMENT_FIELDS}
 
-  mutation CreateComment($postId: ObjectId!, $data: CreateCommentInput!) {
-    comment: createComment(postId: $postId, data: $data) {
+  mutation CreateComment($postId: ObjectId!, $input: CreateCommentInput!) {
+    comment: createComment(postId: $postId, input: $input) {
       ...FULL_COMMENT_FIELDS
     }
   }
