@@ -1,6 +1,6 @@
 import { ApolloError, useMutation } from '@apollo/client';
 import { useRouter } from 'next/router';
-import { FC, useRef } from 'react';
+import { FC, FormEventHandler, useState } from 'react';
 import { MdSend } from 'react-icons/md';
 import { AuthorizedError } from '../../errors/AuthorizedError';
 import { CREATE_COMMENT } from '../../graphql/mutations/CREATE_COMMENT';
@@ -11,11 +11,11 @@ export const AddComment: FC = () => {
     query: { postId },
   } = useRouter();
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [text, setText] = useState('');
   const [createCommentMutation, { loading }] = useMutation(CREATE_COMMENT);
 
-  const createComment = () => {
-    const text = inputRef.current?.value;
+  const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
 
     if (text && !loading)
       toastPromise(
@@ -23,7 +23,7 @@ export const AddComment: FC = () => {
         {
           pending: 'Подождите...',
           success() {
-            if (inputRef.current) inputRef.current.value = '';
+            setText('');
             return 'Комментарий отправлен';
           },
           fail(error) {
@@ -37,24 +37,22 @@ export const AddComment: FC = () => {
   };
 
   return (
-    <div className="relative">
+    <form onSubmit={handleSubmit} className="relative">
       <input
+        required
+        value={text}
+        onChange={({ target }) => setText(target.value)}
         type="text"
         placeholder="Новый комментарий"
         className="w-full py-2 pl-4 pr-12 bg-neutral-200 placeholder:text-neutral-500 rounded-lg"
-        ref={inputRef}
-        onKeyPress={({ key }) => {
-          if (key === 'Enter') createComment();
-        }}
       />
       <button
-        type="button"
+        type="submit"
         className="absolute right-0 h-full px-[0.625rem]"
         aria-label="Оставить комментарий"
-        onClick={createComment}
       >
         <MdSend aria-hidden className="w-5 h-5" />
       </button>
-    </div>
+    </form>
   );
 };

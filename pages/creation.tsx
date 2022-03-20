@@ -57,6 +57,7 @@ const CreationPage: NextPage = () => {
     <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto flex flex-col items-center">
       <h2 className="font-medium text-2xl xl:text-4xl">Предложить пост</h2>
       <input
+        required
         autoComplete="off"
         type="text"
         value={title}
@@ -69,6 +70,7 @@ const CreationPage: NextPage = () => {
       />
       <div className="w-full contents md:flex">
         <select
+          required
           autoComplete="off"
           value={category}
           onChange={({ target }) => setCategory(target.value as PostCategory)}
@@ -109,6 +111,7 @@ const CreationPage: NextPage = () => {
         </label>
       </div>
       <textarea
+        required
         autoComplete="off"
         value={text}
         onChange={({ target }) => setText(target.value)}
