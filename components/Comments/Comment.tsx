@@ -5,6 +5,7 @@ import { FC } from 'react';
 import { DELETE_COMMENT } from '../../graphql/mutations/DELETE_COMMENT';
 import { ClientComment } from '../../types/Comment';
 import { toastPromise } from '../../utils/toastPromise';
+import { Button } from '../Button';
 import { UserHeader } from '../UserHeader';
 
 export type Props = ClientComment;
@@ -28,15 +29,14 @@ export const Comment: FC<Props> = ({ id, date, text, user }) => {
         name={user.name ?? undefined}
         date={new Date(date)}
       />
-      <p className="my-2">{text.trim()}</p>
+      <p className="my-2 whitespace-pre-line">{text.trim()}</p>
       {session?.user?.role === UserRole.ADMIN && (
-        <button
-          type="button"
+        <Button
           onDoubleClick={deleteComment}
-          className="mt-auto py-2 rounded-lg text-white bg-red-600"
+          className="mt-auto text-white bg-red-600"
         >
           Удалить
-        </button>
+        </Button>
       )}
     </div>
   );

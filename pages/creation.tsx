@@ -4,6 +4,8 @@ import clsx from 'clsx';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { FormEventHandler, useState } from 'react';
+import { Button } from '../components/Button';
+import { Textarea } from '../components/Textarea';
 import { AuthorizedError } from '../errors/AuthorizedError';
 import { UnsupportedFileTypeError } from '../errors/UnsupportedFileTypeError';
 import { CREATE_POST } from '../graphql/mutations/CREATE_POST';
@@ -31,6 +33,7 @@ const CreationPage: NextPage = () => {
   const router = useRouter();
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
+    console.log(123);
     event.preventDefault();
     const imageData = image ? await getImageData(image) : undefined;
 
@@ -56,17 +59,13 @@ const CreationPage: NextPage = () => {
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto flex flex-col items-center">
       <h2 className="font-medium text-2xl xl:text-4xl">Предложить пост</h2>
-      <input
+      <Textarea
         required
         autoComplete="off"
-        type="text"
         value={title}
         onChange={({ target }) => setTitle(target.value)}
         placeholder="Введите заголовок"
-        className={clsx(
-          'w-full mt-4 px-4 py-2 rounded-lg',
-          'bg-neutral-200 placeholder:text-neutral-500 placeholder:opacity-100'
-        )}
+        className="w-full mt-4"
       />
       <div className="w-full contents md:flex">
         <select
@@ -96,7 +95,7 @@ const CreationPage: NextPage = () => {
             image ? 'text-black' : 'text-neutral-500'
           )}
         >
-          {image ? image.name : 'Выберите изображение'}
+          <span className="line-clamp-1">{image ? image.name : 'Выберите изображение'}</span>
           <input
             autoComplete="off"
             type="file"
@@ -110,24 +109,18 @@ const CreationPage: NextPage = () => {
           />
         </label>
       </div>
-      <textarea
+      <Textarea
         required
         autoComplete="off"
         value={text}
         onChange={({ target }) => setText(target.value)}
         rows={10}
         placeholder="Введите текст"
-        className={clsx(
-          'w-full mt-4 px-4 py-2 rounded-lg resize-none',
-          'bg-neutral-200 placeholder:text-neutral-500 placeholder:opacity-100'
-        )}
+        className="w-full mt-4"
       />
-      <button
-        type="submit"
-        className="w-full max-w-sm mx-auto mt-4 p-2 rounded-lg bg-green-700 text-white"
-      >
+      <Button type="submit" className="w-full max-w-sm mx-auto mt-4 bg-green-700 text-white">
         Предложить пост
-      </button>
+      </Button>
     </form>
   );
 };

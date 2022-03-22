@@ -5,6 +5,7 @@ import { MdSend } from 'react-icons/md';
 import { AuthorizedError } from '../../errors/AuthorizedError';
 import { CREATE_COMMENT } from '../../graphql/mutations/CREATE_COMMENT';
 import { toastPromise } from '../../utils/toastPromise';
+import { Textarea } from '../Textarea';
 
 export const AddComment: FC = () => {
   const {
@@ -37,19 +38,18 @@ export const AddComment: FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="relative">
-      <input
+    <form onSubmit={handleSubmit} className="relative flex">
+      <Textarea
         required
         value={text}
         onChange={({ target }) => setText(target.value)}
-        type="text"
         placeholder="Новый комментарий"
-        className="w-full py-2 pl-4 pr-12 bg-neutral-200 placeholder:text-neutral-500 rounded-lg"
+        className="w-full pl-4 pr-12"
       />
       <button
         type="submit"
-        className="absolute right-0 h-full px-[0.625rem]"
         aria-label="Оставить комментарий"
+        className="absolute right-0 bottom-0 p-[0.625rem] rounded-lg"
       >
         <MdSend aria-hidden className="w-5 h-5" />
       </button>

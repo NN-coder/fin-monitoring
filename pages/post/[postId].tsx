@@ -13,6 +13,7 @@ import { prisma } from '../../prisma';
 import { ClientPost, ServerPost } from '../../types/Post';
 import { jsonify } from '../../utils/jsonify';
 import { setCacheControlHeader } from '../../utils/setCacheControlHeader';
+import { Button } from '../../components/Button';
 
 export const getServerSideProps: GetServerSideProps<
   { post: ClientPost },
@@ -86,30 +87,24 @@ const PostPage: NextPage<InferGetServerSidePropsType<typeof getServerSideProps>>
         </p>
         {session?.user?.role === UserRole.ADMIN && (
           <div aria-hidden className="contents md:flex">
-            <button
-              type="button"
-              className={clsx(
-                'mt-4 py-2 w-full rounded-lg text-white',
-                published ? 'bg-neutral-500' : 'bg-green-700'
-              )}
+            <Button
+              className="w-full mt-4 text-white bg-green-700"
               onDoubleClick={publishPost}
               disabled={published}
             >
               Опубликовать
-            </button>
-            <button
-              type="button"
-              className="mt-4 py-2 w-full rounded-lg text-green-700 border border-green-700 md:mx-2"
+            </Button>
+            <Button
+              className="w-full mt-4 text-green-700 border border-green-700 md:mx-2"
             >
               Редактировать
-            </button>
-            <button
-              type="button"
-              className="mt-4 py-2 w-full rounded-lg text-white bg-red-600"
+            </Button>
+            <Button
+              className="w-full mt-4 text-white bg-red-600"
               onDoubleClick={deletePost}
             >
               Удалить
-            </button>
+            </Button>
           </div>
         )}
         {published && (
