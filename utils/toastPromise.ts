@@ -4,7 +4,7 @@ import { toast, Icons } from 'react-toastify';
 interface ToastPromiseParams<T> {
   pending?: ReactNode;
   success?: ReactNode | ((data: T) => ReactNode);
-  fail?: ReactNode | ((error: unknown) => ReactNode);
+  fail?: ReactNode | ((error: unknown) => ReactNode | Promise<ReactNode>);
 }
 
 export async function toastPromise<T>(
@@ -17,14 +17,14 @@ export async function toastPromise<T>(
     toast.update(toastId, {
       type: toast.TYPE.SUCCESS,
       icon: Icons.success,
-      render: typeof success === 'function' ? success(await promise) : success,
+      render: typeof success === 'function' ? await success(await promise) : success,
       autoClose: null,
     });
   } catch (error) {
     toast.update(toastId, {
       type: toast.TYPE.ERROR,
       icon: Icons.error,
-      render: typeof fail === 'function' ? fail(error) : fail,
+      render: typeof fail === 'function' ? await fail(error) : fail,
       autoClose: null,
     });
   }

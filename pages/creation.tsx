@@ -33,27 +33,31 @@ const CreationPage: NextPage = () => {
   const router = useRouter();
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
-    console.log(123);
     event.preventDefault();
     const imageData = image ? await getImageData(image) : undefined;
 
-    if (title && text && category !== categorySelectPlaceholder)
-      toastPromise(createPost({ variables: { input: { title, imageData, text, category } } }), {
-        pending: 'Подождите...',
-        success({ data }) {
-          if (data) router.push(`/post/${data.post.category}`);
-          return 'Пост отправлен на проверку модераторам';
-        },
-        fail(error) {
-          if (error instanceof Error && error.message === UnsupportedFileTypeError.message)
-            return 'Неподдерживаемый тип изображения';
+    if (title.trim() && text.trim() && category !== categorySelectPlaceholder)
+      toastPromise(
+        createPost({
+          variables: { input: { title: title.trim(), imageData, text: text.trim(), category } },
+        }),
+        {
+          pending: 'Подождите...',
+          async success({ data }) {
+            if (data) await router.push(`/post/${data.post.id}`);
+            return 'Пост отправлен на проверку модераторам';
+          },
+          fail(error) {
+            if (error instanceof Error && error.message === UnsupportedFileTypeError.message)
+              return 'Неподдерживаемый тип изображения';
 
-          if (error instanceof ApolloError && error.message === AuthorizedError.message)
-            return 'Для создания поста необходимо авторизоваться';
+            if (error instanceof ApolloError && error.message === AuthorizedError.message)
+              return 'Для создания поста необходимо авторизоваться';
 
-          return 'Ошибка при попытке создания поста';
-        },
-      });
+            return 'Ошибка при попытке создания поста';
+          },
+        }
+      );
   };
 
   return (

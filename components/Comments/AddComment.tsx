@@ -18,9 +18,11 @@ export const AddComment: FC = () => {
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
 
-    if (text && !loading)
+    if (text.trim() && !loading)
       toastPromise(
-        createCommentMutation({ variables: { postId: postId as string, input: { text } } }),
+        createCommentMutation({
+          variables: { postId: postId as string, input: { text: text.trim() } },
+        }),
         {
           pending: 'Подождите...',
           success() {
@@ -38,6 +40,7 @@ export const AddComment: FC = () => {
   };
 
   return (
+    // флекс нужен для того, чтобы высота формы была равна высоте инпута
     <form onSubmit={handleSubmit} className="relative flex">
       <Textarea
         required
