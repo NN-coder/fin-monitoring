@@ -1,19 +1,18 @@
-import { ApolloError, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { PostCategory } from '@prisma/client';
 import clsx from 'clsx';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { FormEventHandler, useState } from 'react';
+import { FormEventHandler, useRef, useState } from 'react';
 import { Button } from '../components/Button';
-import { Textarea } from '../components/Textarea';
-import { AuthorizedError } from '../errors/AuthorizedError';
-import { UnsupportedFileTypeError } from '../errors/UnsupportedFileTypeError';
+import { TextField } from '../components/TextField';
 import { CREATE_POST } from '../graphql/mutations/CREATE_POST';
 import { SupportedImageType } from '../types/supportedImageType';
 import { getImageData } from '../utils/getImageData';
 import { toastPromise } from '../utils/toastPromise';
 
 const categorySelectPlaceholder = 'placeholder';
+type Category = PostCategory | typeof categorySelectPlaceholder;
 
 // TODO
 const categorySelectLabels: { [key in PostCategory]: string } = {
@@ -23,23 +22,54 @@ const categorySelectLabels: { [key in PostCategory]: string } = {
 
 const CreationPage: NextPage = () => {
   const [title, setTitle] = useState('');
+  const [isTitleValid, setIsTitleValid] = useState(true);
+  const titleInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const [category, setCategory] = useState<Category>(categorySelectPlaceholder);
+  const [isCategoryValid, setIsCategoryValid] = useState(true);
+  const categorySelectRef = useRef<HTMLSelectElement>(null);
+
   const [image, setImage] = useState<File | null>(null);
+  const [isImageValid, setIsImageValid] = useState(true);
+  const imageInputRef = useRef<HTMLLabelElement>(null);
+
   const [text, setText] = useState('');
-  const [category, setCategory] = useState<PostCategory | typeof categorySelectPlaceholder>(
-    categorySelectPlaceholder
-  );
+  const [isTextValid, setIsTextValid] = useState(true);
+  const textInputRef = useRef<HTMLTextAreaElement>(null);
 
   const [createPost] = useMutation(CREATE_POST);
   const router = useRouter();
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault();
-    const imageData = image ? await getImageData(image) : undefined;
 
-    if (title.trim() && text.trim() && category !== categorySelectPlaceholder)
+    const trimmedTitle = title.trim();
+    const imageData = image && (await getImageData(image));
+    const trimmedText = text.trim();
+
+    setIsTextValid(!!trimmedText);
+    if (!trimmedText) textInputRef.current?.focus();
+
+    setIsImageValid(!image || !!imageData);
+    if (image && !imageData) imageInputRef.current?.focus();
+
+    setIsCategoryValid(category !== categorySelectPlaceholder);
+    if (category === categorySelectPlaceholder) categorySelectRef.current?.focus();
+
+    setIsTitleValid(!!trimmedTitle);
+    if (!trimmedTitle) titleInputRef.current?.focus();
+
+    if (trimmedTitle && trimmedText && category !== categorySelectPlaceholder)
       toastPromise(
         createPost({
-          variables: { input: { title: title.trim(), imageData, text: text.trim(), category } },
+          variables: {
+            input: {
+              title: trimmedTitle,
+              text: trimmedText,
+              imageData: imageData ?? undefined,
+              category,
+            },
+          },
         }),
         {
           pending: 'Подождите...',
@@ -47,15 +77,7 @@ const CreationPage: NextPage = () => {
             if (data) await router.push(`/post/${data.post.id}`);
             return 'Пост отправлен на проверку модераторам';
           },
-          fail(error) {
-            if (error instanceof Error && error.message === UnsupportedFileTypeError.message)
-              return 'Неподдерживаемый тип изображения';
-
-            if (error instanceof ApolloError && error.message === AuthorizedError.message)
-              return 'Для создания поста необходимо авторизоваться';
-
-            return 'Ошибка при попытке создания поста';
-          },
+          fail: 'Ошибка при попытке создания поста',
         }
       );
   };
@@ -63,16 +85,20 @@ const CreationPage: NextPage = () => {
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-xl mx-auto flex flex-col items-center">
       <h2 className="font-medium text-2xl xl:text-4xl">Предложить пост</h2>
-      <Textarea
+      <TextField
+        ref={titleInputRef}
         required
         autoComplete="off"
         value={title}
         onChange={({ target }) => setTitle(target.value)}
-        placeholder="Введите заголовок"
+        label="Введите заголовок"
         className="w-full mt-4"
+        invalid={!isTitleValid}
+        errorText="Заголовок не может быть пустой строкой"
       />
       <div className="w-full contents md:flex">
         <select
+          ref={categorySelectRef}
           required
           autoComplete="off"
           value={category}
@@ -93,6 +119,7 @@ const CreationPage: NextPage = () => {
           ))}
         </select>
         <label
+          ref={imageInputRef}
           tabIndex={0}
           className={clsx(
             'w-full mt-4 px-4 py-2 cursor-pointer rounded-lg bg-neutral-200 md:ml-2',
@@ -113,14 +140,17 @@ const CreationPage: NextPage = () => {
           />
         </label>
       </div>
-      <Textarea
+      <TextField
+        ref={textInputRef}
         required
         autoComplete="off"
+        rows={10}
         value={text}
         onChange={({ target }) => setText(target.value)}
-        rows={10}
-        placeholder="Введите текст"
+        label="Введите текст"
         className="w-full mt-4"
+        invalid={!isTextValid}
+        errorText="Текст не может быть пустой строкой"
       />
       <Button type="submit" className="w-full max-w-sm mx-auto mt-4 bg-green-700 text-white">
         Предложить пост

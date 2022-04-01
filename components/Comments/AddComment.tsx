@@ -1,11 +1,11 @@
 import { ApolloError, useMutation } from '@apollo/client';
 import { useRouter } from 'next/router';
-import { FC, FormEventHandler, useState } from 'react';
+import { FC, FormEventHandler, useRef, useState } from 'react';
 import { MdSend } from 'react-icons/md';
 import { AuthorizedError } from '../../errors/AuthorizedError';
 import { CREATE_COMMENT } from '../../graphql/mutations/CREATE_COMMENT';
 import { toastPromise } from '../../utils/toastPromise';
-import { Textarea } from '../Textarea';
+import { TextField } from '../TextField';
 
 export const AddComment: FC = () => {
   const {
@@ -13,16 +13,25 @@ export const AddComment: FC = () => {
   } = useRouter();
 
   const [text, setText] = useState('');
-  const [createCommentMutation, { loading }] = useMutation(CREATE_COMMENT);
+  const [isTextValid, setIsTextValid] = useState(true);
+
+  const textInputRef = useRef<HTMLTextAreaElement>(null);
+  const [createComment, { loading }] = useMutation(CREATE_COMMENT);
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault();
+    const trimmedText = text.trim();
 
-    if (text.trim() && !loading)
+    if (!trimmedText) {
+      setIsTextValid(false);
+      return textInputRef.current?.focus();
+    }
+
+    if (!loading) {
+      setIsTextValid(true);
+
       toastPromise(
-        createCommentMutation({
-          variables: { postId: postId as string, input: { text: text.trim() } },
-        }),
+        createComment({ variables: { postId: postId as string, input: { text: trimmedText } } }),
         {
           pending: 'Подождите...',
           success() {
@@ -37,25 +46,30 @@ export const AddComment: FC = () => {
           },
         }
       );
+    }
   };
 
   return (
-    // флекс нужен для того, чтобы высота формы была равна высоте инпута
-    <form onSubmit={handleSubmit} className="relative flex">
-      <Textarea
+    <form className="relative" onSubmit={handleSubmit}>
+      <TextField
+        ref={textInputRef}
         required
+        label="Новый комментарий"
+        errorText="Нельзя оставить пустой комментарий"
+        className="w-full"
         value={text}
         onChange={({ target }) => setText(target.value)}
-        placeholder="Новый комментарий"
-        className="w-full pl-4 pr-12"
+        invalid={!isTextValid}
+        endAdornment={
+          <button
+            type="submit"
+            aria-label="Оставить комментарий"
+            className="p-[0.625rem] self-end rounded-lg"
+          >
+            <MdSend aria-hidden className="w-5 h-5" />
+          </button>
+        }
       />
-      <button
-        type="submit"
-        aria-label="Оставить комментарий"
-        className="absolute right-0 bottom-0 p-[0.625rem] rounded-lg"
-      >
-        <MdSend aria-hidden className="w-5 h-5" />
-      </button>
     </form>
   );
 };
